@@ -1,0 +1,3098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal Pro+</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --dark-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-dark: #1f2937;
+            --text-light: #f9fafb;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode {
+            --card-bg: rgba(31, 41, 55, 0.95);
+            --text-dark: #f9fafb;
+            --text-light: #1f2937;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+        }
+
+        /* Header mejorado */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .header-title h1 {
+            font-size: 2.5em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 800;
+        }
+
+        .header-title p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Botones flotantes mejorados */
+        .floating-config {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .config-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-size: 1.4em;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .config-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .config-btn.primary {
+            background: var(--success-gradient);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            width: 70px;
+            height: 70px;
+            font-size: 1.6em;
+        }
+
+        .config-btn.danger {
+            background: var(--danger-gradient);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .config-btn.warning {
+            background: var(--warning-gradient);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .config-btn.info {
+            background: var(--info-gradient);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Efecto de pulso para el botón principal */
+        .config-btn.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: var(--success-gradient);
+            animation: pulse 2s infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Balance mejorado */
+        .balance-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+        }
+
+        .balance-amount {
+            font-size: 3.2em;
+            font-weight: 900;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+            letter-spacing: -2px;
+        }
+
+        .balance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .balance-stat {
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .balance-stat-value {
+            font-size: 1.4em;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .balance-stat-label {
+            color: #64748b;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Navegación simplificada - solo 3 tabs */
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background: var(--card-bg);
+            border-radius: 20px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: var(--card-bg);
+            font-size: 1em;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab i {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8fafc;
+            transform: translateY(-2px);
+            color: #374151;
+        }
+
+        /* Contenido de tabs */
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Formularios mejorados */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            font-weight: 500;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Botones principales */
+        .btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 900;
+            margin: 20px 0;
+            letter-spacing: -1px;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-weight: 700;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Colores de winrate */
+        .winrate-high { color: #10b981; }
+        .winrate-medium { color: #f59e0b; }
+        .winrate-low { color: #ef4444; }
+
+        /* Gráficos mejorados con colores vibrantes */
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 30px;
+            color: var(--text-dark);
+            font-weight: 800;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .chart-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #f1f5f9;
+        }
+
+        .chart-stat {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chart-stat-value {
+            font-size: 1.3em;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chart-stat-label {
+            font-size: 0.8em;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tabla */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .trades-table th,
+        .trades-table td {
+            padding: 18px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .trades-table th {
+            background: #f8fafc;
+            font-weight: 800;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85em;
+        }
+
+        .trades-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .profit { 
+            color: #10b981; 
+            font-weight: 800; 
+        }
+
+        .loss { 
+            color: #ef4444; 
+            font-weight: 800; 
+        }
+
+        /* Modales */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            animation: modalBackdrop 0.3s ease;
+        }
+
+        @keyframes modalBackdrop {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 8% auto;
+            padding: 40px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .modal-header h3 {
+            color: var(--text-dark);
+            font-weight: 800;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .close {
+            color: #9ca3af;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close:hover {
+            color: var(--text-dark);
+            background: #f3f4f6;
+            transform: rotate(90deg);
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border: 2px solid #34d399;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 2px solid #f87171;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 2px solid #fbbf24;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border: 2px solid #60a5fa;
+        }
+
+        /* Lista de divisas */
+        .currency-list {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-top: 25px;
+        }
+
+        .currency-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .currency-item:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            transform: translateX(5px);
+        }
+
+        .delete-currency {
+            color: #ef4444;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .delete-currency:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Acciones de trade */
+        .trade-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        /* Títulos de sección */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            color: var(--text-dark);
+            font-weight: 800;
+            font-size: 1.5em;
+        }
+
+        .section-title i {
+            font-size: 1.2em;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Estrategias */
+        .strategy-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .strategy-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border: 2px solid #f1f5f9;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            border-color: #e2e8f0;
+        }
+
+        .strategy-name {
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .strategy-winrate {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        /* Tags */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .tag-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tag-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        /* Goals */
+        .goals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .goal-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .goal-title {
+            font-weight: 800;
+            font-size: 1.2em;
+        }
+
+        .goal-amount {
+            font-weight: 900;
+            font-size: 1.5em;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .goal-progress {
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .goal-progress-bar {
+            height: 100%;
+            background: var(--success-gradient);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .goal-details {
+            display: flex;
+            justify-content: space-between;
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
+        /* Notificaciones */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: var(--card-bg);
+            color: var(--text-dark);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideInRight 0.3s forwards;
+            max-width: 350px;
+        }
+
+        .notification.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .notification.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .notification.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .notification-close {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Toggle Dark Mode */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .header-controls {
+                justify-content: center;
+            }
+
+            .balance-amount {
+                font-size: 2.5em;
+            }
+
+            .floating-config {
+                top: 15px;
+                right: 15px;
+            }
+
+            .config-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 1.3em;
+            }
+
+            .config-btn.primary {
+                width: 65px;
+                height: 65px;
+                font-size: 1.5em;
+            }
+
+            .tabs {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+
+            .tab {
+                padding: 20px 15px;
+                font-size: 0.9em;
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .tab i {
+                margin-bottom: 0;
+                margin-right: 10px;
+                font-size: 1.4em;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            .chart-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .balance-stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trade-actions {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .modal-content {
+                margin: 5% auto;
+                padding: 25px;
+                width: 95%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tabs {
+                grid-template-columns: 1fr;
+            }
+
+            .tab {
+                flex-direction: row;
+                justify-content: center;
+                padding: 15px;
+            }
+
+            .tab i {
+                margin-bottom: 0;
+                margin-right: 8px;
+            }
+        }
+
+        /* Estados de carga */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tooltips para mobile */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #374151;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Configuración flotante mejorada -->
+    <div class="floating-config">
+        <button class="config-btn primary tooltip" onclick="openTradeModal()" title="Nueva Operación">
+            <i class="fas fa-plus"></i>
+            <span class="tooltiptext">Nueva Operación</span>
+        </button>
+        <button class="config-btn tooltip" onclick="openConfigModal()" title="Configuración">
+            <i class="fas fa-cog"></i>
+            <span class="tooltiptext">Configuración</span>
+        </button>
+        <button class="config-btn warning tooltip" onclick="openCurrencyModal()" title="Gestionar Divisas">
+            <i class="fas fa-coins"></i>
+            <span class="tooltiptext">Divisas OTC</span>
+        </button>
+        <button class="config-btn info tooltip" onclick="openGoalsModal()" title="Metas">
+            <i class="fas fa-bullseye"></i>
+            <span class="tooltiptext">Metas</span>
+        </button>
+        <button class="config-btn danger tooltip" onclick="confirmResetAll()" title="Resetear Todo">
+            <i class="fas fa-trash-alt"></i>
+            <span class="tooltiptext">Resetear Todo</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <h1><i class="fas fa-chart-line"></i> Trading Journal Pro+</h1>
+                <p>Sistema profesional para opciones binarias OTC</p>
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn" onclick="exportData()">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <button class="btn btn-success" onclick="document.getElementById('importFile').click()">
+                    <i class="fas fa-upload"></i> Importar
+                </button>
+            </div>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <h3><i class="fas fa-wallet"></i> Balance Actual</h3>
+            <div class="balance-amount" id="currentBalance">$50.00</div>
+            <div class="balance-stats">
+                <div class="balance-stat">
+                    <div class="balance-stat-value" id="initialCapitalDisplay">$50.00</div>
+                    <div class="balance-stat-label">Capital Inicial</div>
+                </div>
+                <div class="balance-stat">
+                    <div class="balance-stat-value" id="totalProfitDisplay">$0.00</div>
+                    <div class="balance-stat-label">P&L Total</div>
+                </div>
+                <div class="balance-stat">
+                    <div class="balance-stat-value" id="roiDisplay">0%</div>
+                    <div class="balance-stat-label">ROI</div>
+                </div>
+                <div class="balance-stat">
+                    <div class="balance-stat-value" id="winRateDisplay">0%</div>
+                    <div class="balance-stat-label">Win Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación simplificada -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="tab" onclick="showTab('analytics')">
+                <i class="fas fa-chart-line"></i>
+                <span>Análisis</span>
+            </button>
+            <button class="tab" onclick="showTab('history')">
+                <i class="fas fa-history"></i>
+                <span>Historial</span>
+            </button>
+            <button class="tab" onclick="showTab('goals')">
+                <i class="fas fa-bullseye"></i>
+                <span>Metas</span>
+            </button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i> Estadísticas
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-value" id="totalTrades">0</div>
+                    <div class="stat-label">Total Operaciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-bullseye"></i></div>
+                    <div class="stat-value winrate-high" id="overallWinrate">0%</div>
+                    <div class="stat-label">Win Rate General</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                    <div class="stat-value" id="totalProfitStat">$0.00</div>
+                    <div class="stat-label">P&L Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="stat-value" id="bestStrategy">-</div>
+                    <div class="stat-label">Mejor Estrategia</div>
+                </div>
+            </div>
+
+            <h3 class="section-title">
+                <i class="fas fa-brain"></i> Por Estrategia
+            </h3>
+            <div class="strategy-stats" id="strategyStats"></div>
+
+            <h3 class="section-title">
+                <i class="fas fa-clock"></i> Por Temporalidad
+            </h3>
+            <div class="strategy-stats" id="timeframeStats"></div>
+
+            <h3 class="section-title">
+                <i class="fas fa-tags"></i> Por Etiquetas
+            </h3>
+            <div class="strategy-stats" id="tagStats"></div>
+        </div>
+
+        <!-- Análisis -->
+        <div id="analytics" class="tab-content">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i> Análisis Avanzado
+            </h2>
+            
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-area"></i> Evolución del Balance</h3>
+                <div class="chart-wrapper">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+                <div class="chart-stats" id="balanceStats">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-pie"></i> Win Rate por Estrategia</h3>
+                <div class="chart-wrapper">
+                    <canvas id="strategyChart"></canvas>
+                </div>
+                <div class="chart-stats" id="strategyChartStats">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-bar"></i> Distribución Win/Loss</h3>
+                <div class="chart-wrapper">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+                <div class="chart-stats" id="distributionStats">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3><i class="fas fa-calendar"></i> Rendimiento por Día de la Semana</h3>
+                <div class="chart-wrapper">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+                <div class="chart-stats" id="weekdayStats">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <div id="history" class="tab-content">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i> Historial
+            </h2>
+            <div class="table-container">
+                <table class="trades-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-calendar"></i> Fecha</th>
+                            <th><i class="fas fa-exchange-alt"></i> Par</th>
+                            <th><i class="fas fa-brain"></i> Estrategia</th>
+                            <th><i class="fas fa-clock"></i> Tiempo</th>
+                            <th><i class="fas fa-arrows-alt-v"></i> Dirección</th>
+                            <th><i class="fas fa-dollar-sign"></i> Monto</th>
+                            <th><i class="fas fa-chart-line"></i> Resultado</th>
+                            <th><i class="fas fa-coins"></i> P&L</th>
+                            <th><i class="fas fa-tags"></i> Etiquetas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradesHistory"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Metas -->
+        <div id="goals" class="tab-content">
+            <h2 class="section-title">
+                <i class="fas fa-bullseye"></i> Mis Metas
+            </h2>
+
+            <div class="goals-container" id="goalsList">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="chart-container">
+                <h3><i class="fas fa-trophy"></i> Progreso de Metas Mensuales</h3>
+                <div class="chart-wrapper">
+                    <canvas id="goalsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Nueva Operación -->
+    <div id="tradeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Nueva Operación</h3>
+                <span class="close" onclick="closeTradeModal()">&times;</span>
+            </div>
+            <form id="tradeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pair">
+                            <i class="fas fa-exchange-alt"></i> Par de Divisas
+                        </label>
+                        <select id="pair" required>
+                            <option value="">Seleccionar par</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeframe">
+                            <i class="fas fa-clock"></i> Temporalidad
+                        </label>
+                        <select id="timeframe" required>
+                            <option value="">Seleccionar</option>
+                            <option value="M1">M1 (1 minuto)</option>
+                            <option value="M5">M5 (5 minutos)</option>
+                            <option value="M15">M15 (15 minutos)</option>
+                            <option value="H1">H1 (1 hora)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="strategy">
+                            <i class="fas fa-brain"></i> Estrategia
+                        </label>
+                        <select id="strategy" required>
+                            <option value="">Seleccionar estrategia</option>
+                            <option value="Continuidad">Continuidad</option>
+                            <option value="Reversión">Reversión</option>
+                            <option value="Pullback">Pullback</option>
+                            <option value="Soporte y Resistencia">Soporte y Resistencia</option>
+                            <option value="Patrón de Vela">Patrón de Vela</option>
+                            <option value="Noticias">Noticias</option>
+                            <option value="Breakout">Breakout</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="direction">
+                            <i class="fas fa-arrows-alt-v"></i> Dirección
+                        </label>
+                        <select id="direction" required>
+                            <option value="">Seleccionar</option>
+                            <option value="CALL">📈 CALL (Alcista)</option>
+                            <option value="PUT">📉 PUT (Bajista)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amount">
+                            <i class="fas fa-dollar-sign"></i> Monto ($)
+                        </label>
+                        <input type="number" id="amount" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="payout">
+                            <i class="fas fa-percentage"></i> Payout (%)
+                        </label>
+                        <input type="number" id="payout" step="0.1" min="0" max="100" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">
+                        <i class="fas fa-sticky-note"></i> Notas (Opcional)
+                    </label>
+                    <textarea id="notes" rows="3" placeholder="Análisis técnico, observaciones, etc."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">
+                        <i class="fas fa-tags"></i> Etiquetas (Separar con coma)
+                    </label>
+                    <input type="text" id="tags" placeholder="Ej: emocionado, noticias, riesgo-alto">
+                </div>
+
+                <div class="trade-actions">
+                    <button type="button" class="btn btn-success" onclick="submitTrade('win')">
+                        <i class="fas fa-check-circle"></i> GANADA
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="submitTrade('loss')">
+                        <i class="fas fa-times-circle"></i> PERDIDA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Configuración -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Configuración</h3>
+                <span class="close" onclick="closeConfigModal()">&times;</span>
+            </div>
+            <form id="configForm">
+                <div class="form-group">
+                    <label for="newInitialCapital">
+                        <i class="fas fa-wallet"></i> Capital Inicial ($)
+                    </label>
+                    <input type="number" id="newInitialCapital" step="0.01" min="0.01" required>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Cambiar el capital inicial reiniciará tu balance y eliminará todas las operaciones.
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-save"></i> Guardar Configuración
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Divisas -->
+    <div id="currencyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-coins"></i> Divisas OTC</h3>
+                <span class="close" onclick="closeCurrencyModal()">&times;</span>
+            </div>
+            <form id="currencyForm">
+                <div class="form-group">
+                    <label for="newCurrency">
+                        <i class="fas fa-plus"></i> Nueva Divisa
+                    </label>
+                    <input type="text" id="newCurrency" placeholder="Ej: BTC/USD, ETH/EUR, GOLD/USD" required>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-plus-circle"></i> Agregar Divisa
+                </button>
+            </form>
+            <div class="currency-list" id="currencyList"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Metas -->
+    <div id="goalsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bullseye"></i> Establecer Metas</h3>
+                <span class="close" onclick="closeGoalsModal()">&times;</span>
+            </div>
+            <form id="goalsForm">
+                <div class="form-group">
+                    <label for="dailyGoal">
+                        <i class="fas fa-calendar-day"></i> Meta Diaria ($)
+                    </label>
+                    <input type="number" id="dailyGoal" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="weeklyGoal">
+                        <i class="fas fa-calendar-week"></i> Meta Semanal ($)
+                    </label>
+                    <input type="number" id="weeklyGoal" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="monthlyGoal">
+                        <i class="fas fa-calendar-alt"></i> Meta Mensual ($)
+                    </label>
+                    <input type="number" id="monthlyGoal" step="0.01" min="0">
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-save"></i> Guardar Metas
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Operación Registrada</h3>
+                <span class="close" onclick="closeConfirmModal()">&times;</span>
+            </div>
+            <div id="modalMessage"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Reset -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Reset</h3>
+                <span class="close" onclick="closeResetModal()">&times;</span>
+            </div>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>¡ATENCIÓN!</strong> Esta acción eliminará permanentemente:
+                <ul style="margin: 10px 0 0 20px;">
+                    <li>Todas las operaciones registradas</li>
+                    <li>Estadísticas y análisis</li>
+                    <li>Configuración del balance</li>
+                    <li>Divisas personalizadas</li>
+                    <li>Metas establecidas</li>
+                </ul>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <button class="btn" onclick="closeResetModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn btn-danger" onclick="executeReset()">
+                    <i class="fas fa-trash-alt"></i> Eliminar Todo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de notificaciones -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <script>
+        // Datos del trading con persistencia en IndexedDB
+        let tradingData = {
+            balance: 50.00,
+            initialCapital: 50.00,
+            trades: [],
+            currencies: [
+                'EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP', 'AUD/USD', 'USD/CAD',
+                'BTC/USD', 'ETH/USD', 'LTC/USD', 'XRP/USD', 'GOLD/USD', 'OIL/USD'
+            ],
+            goals: {
+                daily: 0,
+                weekly: 0,
+                monthly: 0
+            },
+            tags: [],
+            lastBackup: null,
+            settings: {
+                darkMode: false,
+                notifications: true
+            }
+        };
+
+        // Variables para gráficos
+        let balanceChart, strategyChart, distributionChart, weekdayChart, goalsChart;
+
+        // IndexedDB para persistencia
+        let db;
+
+        // Inicializar IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('TradingJournalPro', 2);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains('tradingData')) {
+                        const store = db.createObjectStore('tradingData', { keyPath: 'id' });
+                        store.createIndex('date', 'date', { unique: false });
+                    }
+                    
+                    // Actualizar esquema si es necesario
+                    if (event.oldVersion < 2) {
+                        // Nueva versión, podrías agregar más lógica si es necesario
+                    }
+                };
+            });
+        }
+
+        // Guardar en IndexedDB
+        async function saveToIndexedDB() {
+            if (!db) return;
+            
+            const transaction = db.transaction(['tradingData'], 'readwrite');
+            const store = transaction.objectStore('tradingData');
+            
+            const dataToSave = {
+                id: 'mainData',
+                ...tradingData,
+                lastSaved: new Date().toISOString()
+            };
+            
+            store.put(dataToSave);
+            
+            // También guardar en localStorage como backup
+            localStorage.setItem('tradingJournalPro', JSON.stringify(tradingData));
+        }
+
+        // Cargar desde IndexedDB
+        async function loadFromIndexedDB() {
+            if (!db) return false;
+            
+            const transaction = db.transaction(['tradingData'], 'readonly');
+            const store = transaction.objectStore('tradingData');
+            const request = store.get('mainData');
+            
+            return new Promise((resolve) => {
+                request.onsuccess = () => {
+                    if (request.result) {
+                        const { id, lastSaved, ...data } = request.result;
+                        tradingData = { ...tradingData, ...data };
+                        resolve(true);
+                    } else {
+                        // Intentar cargar desde localStorage
+                        const saved = localStorage.getItem('tradingJournalPro');
+                        if (saved) {
+                            tradingData = { ...tradingData, ...JSON.parse(saved) };
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
+                    }
+                };
+                request.onerror = () => resolve(false);
+            });
+        }
+
+        // Cargar datos al inicio
+        async function loadData() {
+            try {
+                await initDB();
+                await loadFromIndexedDB();
+                
+                // Aplicar modo oscuro si está activado
+                if (tradingData.settings.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+                }
+                
+            } catch (error) {
+                console.warn('Error al cargar desde IndexedDB, usando localStorage:', error);
+                const saved = localStorage.getItem('tradingJournalPro');
+                if (saved) {
+                    tradingData = { ...tradingData, ...JSON.parse(saved) };
+                }
+            }
+            updateDisplay();
+            updateCurrencySelect();
+            updateCurrencyList();
+            updateGoalsDisplay();
+        }
+
+        // Guardar datos
+        async function saveData() {
+            try {
+                await saveToIndexedDB();
+            } catch (error) {
+                console.warn('Error al guardar en IndexedDB, usando localStorage:', error);
+                localStorage.setItem('tradingJournalPro', JSON.stringify(tradingData));
+            }
+        }
+
+        // Cambiar tabs con animaciones
+        function showTab(tabName) {
+            // Remover active de todos los tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activar tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Activar dashboard por defecto
+            switch(tabName) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'analytics':
+                    setTimeout(updateAnalytics, 100); // Delay para animación
+                    break;
+                case 'history':
+                    updateHistory();
+                    break;
+                case 'goals':
+                    updateGoalsTab();
+                    break;
+            }
+        }
+
+        // Modales mejorados
+        function openTradeModal() {
+            document.getElementById('tradeModal').style.display = 'block';
+        }
+
+        function closeTradeModal() {
+            document.getElementById('tradeModal').style.display = 'none';
+        }
+
+        function openConfigModal() {
+            document.getElementById('newInitialCapital').value = tradingData.initialCapital;
+            document.getElementById('configModal').style.display = 'block';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').style.display = 'none';
+        }
+
+        function openCurrencyModal() {
+            document.getElementById('currencyModal').style.display = 'block';
+            updateCurrencyList();
+        }
+
+        function closeCurrencyModal() {
+            document.getElementById('currencyModal').style.display = 'none';
+        }
+
+        function openGoalsModal() {
+            document.getElementById('dailyGoal').value = tradingData.goals.daily || '';
+            document.getElementById('weeklyGoal').value = tradingData.goals.weekly || '';
+            document.getElementById('monthlyGoal').value = tradingData.goals.monthly || '';
+            document.getElementById('goalsModal').style.display = 'block';
+        }
+
+        function closeGoalsModal() {
+            document.getElementById('goalsModal').style.display = 'none';
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        function confirmResetAll() {
+            document.getElementById('resetModal').style.display = 'block';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        // Toggle modo oscuro
+        function toggleDarkMode() {
+            tradingData.settings.darkMode = !tradingData.settings.darkMode;
+            document.body.classList.toggle('dark-mode');
+            
+            if (tradingData.settings.darkMode) {
+                document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+            }
+            
+            saveData();
+            showNotification('Modo ' + (tradingData.settings.darkMode ? 'oscuro' : 'claro') + ' activado', 'info');
+        }
+
+        // Reset completo
+        async function executeReset() {
+            try {
+                // Limpiar IndexedDB
+                if (db) {
+                    const transaction = db.transaction(['tradingData'], 'readwrite');
+                    const store = transaction.objectStore('tradingData');
+                    await store.clear();
+                }
+                
+                // Limpiar localStorage
+                localStorage.removeItem('tradingJournalPro');
+                
+                // Resetear datos
+                tradingData = {
+                    balance: 50.00,
+                    initialCapital: 50.00,
+                    trades: [],
+                    currencies: [
+                        'EUR/USD', 'GBP/USD', 'USD/JPY', 'EUR/GBP', 'AUD/USD', 'USD/CAD',
+                        'BTC/USD', 'ETH/USD', 'LTC/USD', 'XRP/USD', 'GOLD/USD', 'OIL/USD'
+                    ],
+                    goals: {
+                        daily: 0,
+                        weekly: 0,
+                        monthly: 0
+                    },
+                    tags: [],
+                    lastBackup: null,
+                    settings: {
+                        darkMode: tradingData.settings.darkMode,
+                        notifications: true
+                    }
+                };
+                
+                // Destruir gráficos existentes
+                if (balanceChart) balanceChart.destroy();
+                if (strategyChart) strategyChart.destroy();
+                if (distributionChart) distributionChart.destroy();
+                if (weekdayChart) weekdayChart.destroy();
+                if (goalsChart) goalsChart.destroy();
+                
+                // Actualizar interfaz
+                updateDisplay();
+                updateCurrencySelect();
+                updateCurrencyList();
+                updateGoalsDisplay();
+                
+                closeResetModal();
+                
+                // Mostrar confirmación
+                showNotification('Todos los datos han sido eliminados exitosamente.', 'success');
+                
+            } catch (error) {
+                console.error('Error al resetear:', error);
+                showNotification('Error al eliminar datos. Intenta de nuevo.', 'error');
+            }
+        }
+
+        // Configuración
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const newCapital = parseFloat(document.getElementById('newInitialCapital').value);
+            
+            if (confirm('¿Confirmas el cambio? Esto reiniciará el balance y eliminará operaciones.')) {
+                tradingData.initialCapital = newCapital;
+                tradingData.balance = newCapital;
+                tradingData.trades = [];
+                await saveData();
+                updateDisplay();
+                closeConfigModal();
+                showNotification('Configuración actualizada exitosamente.', 'success');
+            }
+        });
+
+        // Gestión de metas
+        document.getElementById('goalsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            tradingData.goals.daily = parseFloat(document.getElementById('dailyGoal').value) || 0;
+            tradingData.goals.weekly = parseFloat(document.getElementById('weeklyGoal').value) || 0;
+            tradingData.goals.monthly = parseFloat(document.getElementById('monthlyGoal').value) || 0;
+            
+            await saveData();
+            updateGoalsDisplay();
+            closeGoalsModal();
+            showNotification('Metas actualizadas exitosamente.', 'success');
+        });
+
+        // Gestión de divisas
+        document.getElementById('currencyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const newCurrency = document.getElementById('newCurrency').value.trim().toUpperCase();
+            
+            if (newCurrency && !tradingData.currencies.includes(newCurrency)) {
+                tradingData.currencies.push(newCurrency);
+                await saveData();
+                updateCurrencySelect();
+                updateCurrencyList();
+                document.getElementById('newCurrency').value = '';
+                showNotification(`Divisa ${newCurrency} agregada exitosamente.`, 'success');
+            } else if (tradingData.currencies.includes(newCurrency)) {
+                showNotification('Esta divisa ya existe.', 'warning');
+            }
+        });
+
+        // Eliminar divisa
+        async function deleteCurrency(currency) {
+            if (confirm(`¿Eliminar la divisa ${currency}?`)) {
+                tradingData.currencies = tradingData.currencies.filter(c => c !== currency);
+                await saveData();
+                updateCurrencySelect();
+                updateCurrencyList();
+                showNotification(`Divisa ${currency} eliminada.`, 'info');
+            }
+        }
+
+        // Actualizar select de divisas
+        function updateCurrencySelect() {
+            const select = document.getElementById('pair');
+            select.innerHTML = '<option value="">Seleccionar par</option>';
+            
+            tradingData.currencies.forEach(currency => {
+                const option = document.createElement('option');
+                option.value = currency;
+                option.textContent = currency;
+                select.appendChild(option);
+            });
+        }
+
+        // Actualizar lista de divisas
+        function updateCurrencyList() {
+            const list = document.getElementById('currencyList');
+            list.innerHTML = '';
+            
+            if (tradingData.currencies.length === 0) {
+                list.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay divisas configuradas.</div>';
+                return;
+            }
+            
+            tradingData.currencies.forEach(currency => {
+                const item = document.createElement('div');
+                item.className = 'currency-item';
+                item.innerHTML = `
+                    <span><i class="fas fa-coins"></i> <strong>${currency}</strong></span>
+                    <span class="delete-currency" onclick="deleteCurrency('${currency}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Registrar operación
+        async function submitTrade(result) {
+            const form = document.getElementById('tradeForm');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Deshabilitar botones para evitar doble click
+            const buttons = form.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            try {
+                // Procesar etiquetas
+                const tagsInput = document.getElementById('tags').value;
+                const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+                
+                // Añadir etiquetas únicas a la lista global
+                tags.forEach(tag => {
+                    if (!tradingData.tags.includes(tag)) {
+                        tradingData.tags.push(tag);
+                    }
+                });
+
+                const trade = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    pair: document.getElementById('pair').value,
+                    timeframe: document.getElementById('timeframe').value,
+                    strategy: document.getElementById('strategy').value,
+                    direction: document.getElementById('direction').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    payout: parseFloat(document.getElementById('payout').value),
+                    notes: document.getElementById('notes').value,
+                    tags: tags,
+                    result: result
+                };
+
+                // Calcular P&L
+                if (result === 'win') {
+                    trade.profit = trade.amount * (trade.payout / 100);
+                    tradingData.balance += trade.profit;
+                } else {
+                    trade.profit = -trade.amount;
+                    tradingData.balance += trade.profit;
+                }
+
+                // Agregar operación
+                tradingData.trades.push(trade);
+                
+                // Guardar
+                await saveData();
+                updateDisplay();
+                showConfirmModal(trade);
+                
+                // Verificar si se alcanzaron metas
+                checkGoals(trade);
+                
+                // Limpiar formulario
+                form.reset();
+                
+            } catch (error) {
+                console.error('Error al guardar operación:', error);
+                showNotification('Error al guardar la operación.', 'error');
+            } finally {
+                // Re-habilitar botones
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        // Verificar metas
+        function checkGoals(trade) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay()); // Domingo de esta semana
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            // Calcular ganancias para hoy, esta semana y este mes
+            const todayProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= today && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+                
+            const weekProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= weekStart && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+                
+            const monthProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= monthStart && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+            
+            // Verificar metas
+            if (tradingData.goals.daily > 0 && todayProfit >= tradingData.goals.daily) {
+                showNotification(`¡Meta diaria alcanzada! +$${todayProfit.toFixed(2)}`, 'success');
+            }
+            
+            if (tradingData.goals.weekly > 0 && weekProfit >= tradingData.goals.weekly) {
+                showNotification(`¡Meta semanal alcanzada! +$${weekProfit.toFixed(2)}`, 'success');
+            }
+            
+            if (tradingData.goals.monthly > 0 && monthProfit >= tradingData.goals.monthly) {
+                showNotification(`¡Meta mensual alcanzada! +$${monthProfit.toFixed(2)}`, 'success');
+            }
+        }
+
+        // Modal de confirmación de operación
+        function showConfirmModal(trade) {
+            const modal = document.getElementById('confirmModal');
+            const message = document.getElementById('modalMessage');
+            
+            const resultText = trade.result === 'win' ? 'GANADA' : 'PERDIDA';
+            const resultIcon = trade.result === 'win' ? 'fa-check-circle' : 'fa-times-circle';
+            const alertType = trade.result === 'win' ? 'success' : 'danger';
+            const profitText = trade.profit >= 0 ? `+$${trade.profit.toFixed(2)}` : `$${trade.profit.toFixed(2)}`;
+            
+            message.innerHTML = `
+                <div class="alert alert-${alertType}">
+                    <i class="fas ${resultIcon}"></i>
+                    <div>
+                        <strong>${resultText}</strong><br>
+                        <strong>Par:</strong> ${trade.pair}<br>
+                        <strong>Estrategia:</strong> ${trade.strategy}<br>
+                        <strong>Temporalidad:</strong> ${trade.timeframe}<br>
+                        <strong>P&L:</strong> <span class="${trade.profit >= 0 ? 'profit' : 'loss'}">${profitText}</span><br>
+                        <strong>Nuevo balance:</strong> $${tradingData.balance.toFixed(2)}
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        // Actualizar display principal
+        function updateDisplay() {
+            const totalProfit = tradingData.balance - tradingData.initialCapital;
+            const roi = tradingData.initialCapital > 0 ? (totalProfit / tradingData.initialCapital * 100) : 0;
+            
+            // Calcular win rate
+            const totalTrades = tradingData.trades.length;
+            const winningTrades = tradingData.trades.filter(t => t.result === 'win').length;
+            const winRate = totalTrades > 0 ? (winningTrades / totalTrades * 100) : 0;
+            
+            document.getElementById('currentBalance').textContent = `$${tradingData.balance.toFixed(2)}`;
+            document.getElementById('initialCapitalDisplay').textContent = `$${tradingData.initialCapital.toFixed(2)}`;
+            document.getElementById('totalProfitDisplay').textContent = `$${totalProfit.toFixed(2)}`;
+            document.getElementById('roiDisplay').textContent = `${roi.toFixed(1)}%`;
+            document.getElementById('winRateDisplay').textContent = `${winRate.toFixed(1)}%`;
+            
+            // Colores dinámicos
+            const profitEl = document.getElementById('totalProfitDisplay');
+            const roiEl = document.getElementById('roiDisplay');
+            const winRateEl = document.getElementById('winRateDisplay');
+            
+            if (totalProfit >= 0) {
+                profitEl.style.color = '#10b981';
+                roiEl.style.color = '#10b981';
+            } else {
+                profitEl.style.color = '#ef4444';
+                roiEl.style.color = '#ef4444';
+            }
+            
+            if (winRate >= 70) {
+                winRateEl.style.color = '#10b981';
+            } else if (winRate >= 50) {
+                winRateEl.style.color = '#f59e0b';
+            } else {
+                winRateEl.style.color = '#ef4444';
+            }
+        }
+
+        // Dashboard
+        function updateDashboard() {
+            const trades = tradingData.trades;
+            const totalTrades = trades.length;
+            const winningTrades = trades.filter(t => t.result === 'win').length;
+            const winRate = totalTrades > 0 ? (winningTrades / totalTrades * 100) : 0;
+            const totalProfit = tradingData.balance - tradingData.initialCapital;
+
+            document.getElementById('totalTrades').textContent = totalTrades;
+            document.getElementById('overallWinrate').textContent = `${winRate.toFixed(1)}%`;
+            document.getElementById('totalProfitStat').textContent = `$${totalProfit.toFixed(2)}`;
+            
+            // Colorear elementos
+            const winrateEl = document.getElementById('overallWinrate');
+            winrateEl.className = `stat-value ${winRate >= 70 ? 'winrate-high' : winRate >= 50 ? 'winrate-medium' : 'winrate-low'}`;
+            
+            const profitEl = document.getElementById('totalProfitStat');
+            profitEl.style.color = totalProfit >= 0 ? '#10b981' : '#ef4444';
+
+            updateStrategyStats();
+            updateTimeframeStats();
+            updateTagStats();
+            
+            const bestStrategy = getBestStrategy();
+            document.getElementById('bestStrategy').textContent = bestStrategy || 'N/A';
+        }
+
+        // Estadísticas por estrategia
+        function updateStrategyStats() {
+            const strategies = {};
+            
+            tradingData.trades.forEach(trade => {
+                if (!strategies[trade.strategy]) {
+                    strategies[trade.strategy] = { total: 0, wins: 0, profit: 0 };
+                }
+                strategies[trade.strategy].total++;
+                if (trade.result === 'win') {
+                    strategies[trade.strategy].wins++;
+                }
+                strategies[trade.strategy].profit += trade.profit;
+            });
+
+            const statsEl = document.getElementById('strategyStats');
+            statsEl.innerHTML = '';
+
+            if (Object.keys(strategies).length === 0) {
+                statsEl.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Registra operaciones para ver estadísticas por estrategia.
+                    </div>
+                `;
+                return;
+            }
+
+            Object.keys(strategies).forEach(strategy => {
+                const stats = strategies[strategy];
+                const winRate = (stats.wins / stats.total * 100).toFixed(1);
+                
+                const card = document.createElement('div');
+                card.className = 'strategy-card';
+                card.innerHTML = `
+                    <div class="strategy-name">
+                        <i class="fas fa-brain"></i> ${strategy}
+                    </div>
+                    <div class="strategy-winrate ${winRate >= 70 ? 'winrate-high' : winRate >= 50 ? 'winrate-medium' : 'winrate-low'}">
+                        ${winRate}%
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <i class="fas fa-chart-line"></i> <strong>${stats.total}</strong> operaciones
+                    </div>
+                    <div style="color: ${stats.profit >= 0 ? '#10b981' : '#ef4444'}">
+                        <i class="fas fa-coins"></i> <strong>$${stats.profit.toFixed(2)}</strong>
+                    </div>
+                `;
+                statsEl.appendChild(card);
+            });
+        }
+
+        // Estadísticas por temporalidad
+        function updateTimeframeStats() {
+            const timeframes = {};
+            
+            tradingData.trades.forEach(trade => {
+                if (!timeframes[trade.timeframe]) {
+                    timeframes[trade.timeframe] = { total: 0, wins: 0, profit: 0 };
+                }
+                timeframes[trade.timeframe].total++;
+                if (trade.result === 'win') {
+                    timeframes[trade.timeframe].wins++;
+                }
+                timeframes[trade.timeframe].profit += trade.profit;
+            });
+
+            const statsEl = document.getElementById('timeframeStats');
+            statsEl.innerHTML = '';
+
+            if (Object.keys(timeframes).length === 0) {
+                statsEl.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Registra operaciones para ver estadísticas por temporalidad.
+                    </div>
+                `;
+                return;
+            }
+
+            Object.keys(timeframes).forEach(timeframe => {
+                const stats = timeframes[timeframe];
+                const winRate = (stats.wins / stats.total * 100).toFixed(1);
+                
+                const card = document.createElement('div');
+                card.className = 'strategy-card';
+                card.innerHTML = `
+                    <div class="strategy-name">
+                        <i class="fas fa-clock"></i> ${timeframe}
+                    </div>
+                    <div class="strategy-winrate ${winRate >= 70 ? 'winrate-high' : winRate >= 50 ? 'winrate-medium' : 'winrate-low'}">
+                        ${winRate}%
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <i class="fas fa-chart-line"></i> <strong>${stats.total}</strong> operaciones
+                    </div>
+                    <div style="color: ${stats.profit >= 0 ? '#10b981' : '#ef4444'}">
+                        <i class="fas fa-coins"></i> <strong>$${stats.profit.toFixed(2)}</strong>
+                    </div>
+                `;
+                statsEl.appendChild(card);
+            });
+        }
+
+        // Estadísticas por etiquetas
+        function updateTagStats() {
+            const tagStats = {};
+            
+            tradingData.trades.forEach(trade => {
+                trade.tags.forEach(tag => {
+                    if (!tagStats[tag]) {
+                        tagStats[tag] = { total: 0, wins: 0, profit: 0 };
+                    }
+                    tagStats[tag].total++;
+                    if (trade.result === 'win') {
+                        tagStats[tag].wins++;
+                    }
+                    tagStats[tag].profit += trade.profit;
+                });
+            });
+
+            const statsEl = document.getElementById('tagStats');
+            statsEl.innerHTML = '';
+
+            if (Object.keys(tagStats).length === 0) {
+                statsEl.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Usa etiquetas en tus operaciones para ver estadísticas.
+                    </div>
+                `;
+                return;
+            }
+
+            Object.keys(tagStats).forEach(tag => {
+                const stats = tagStats[tag];
+                const winRate = (stats.wins / stats.total * 100).toFixed(1);
+                
+                const card = document.createElement('div');
+                card.className = 'strategy-card';
+                card.innerHTML = `
+                    <div class="strategy-name">
+                        <i class="fas fa-tag"></i> ${tag}
+                    </div>
+                    <div class="strategy-winrate ${winRate >= 70 ? 'winrate-high' : winRate >= 50 ? 'winrate-medium' : 'winrate-low'}">
+                        ${winRate}%
+                    </div>
+                    <div style="margin: 10px 0;">
+                        <i class="fas fa-chart-line"></i> <strong>${stats.total}</strong> operaciones
+                    </div>
+                    <div style="color: ${stats.profit >= 0 ? '#10b981' : '#ef4444'}">
+                        <i class="fas fa-coins"></i> <strong>$${stats.profit.toFixed(2)}</strong>
+                    </div>
+                `;
+                statsEl.appendChild(card);
+            });
+        }
+
+        // Mejor estrategia
+        function getBestStrategy() {
+            const strategies = {};
+            
+            tradingData.trades.forEach(trade => {
+                if (!strategies[trade.strategy]) {
+                    strategies[trade.strategy] = { total: 0, wins: 0 };
+                }
+                strategies[trade.strategy].total++;
+                if (trade.result === 'win') {
+                    strategies[trade.strategy].wins++;
+                }
+            });
+
+            let bestStrategy = null;
+            let bestWinRate = 0;
+
+            Object.keys(strategies).forEach(strategy => {
+                const winRate = strategies[strategy].wins / strategies[strategy].total;
+                if (winRate > bestWinRate && strategies[strategy].total >= 3) {
+                    bestWinRate = winRate;
+                    bestStrategy = strategy;
+                }
+            });
+
+            return bestStrategy;
+        }
+
+        // Gráficos
+        function updateAnalytics() {
+            updateBalanceChart();
+            updateStrategyChart();
+            updateDistributionChart();
+            updateWeekdayChart();
+        }
+
+        // Gráfico de evolución del balance
+        function updateBalanceChart() {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            
+            if (balanceChart) {
+                balanceChart.destroy();
+            }
+
+            if (tradingData.trades.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            const balanceData = [tradingData.initialCapital];
+            const labels = ['Inicio'];
+            let currentBalance = tradingData.initialCapital;
+
+            tradingData.trades.forEach((trade, index) => {
+                currentBalance += trade.profit;
+                balanceData.push(currentBalance);
+                labels.push(`${index + 1}`);
+            });
+
+            balanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Balance ($)',
+                        data: balanceData,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 4,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 3,
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                },
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Gráfico de win rate por estrategia
+        function updateStrategyChart() {
+            const ctx = document.getElementById('strategyChart').getContext('2d');
+            
+            if (strategyChart) {
+                strategyChart.destroy();
+            }
+
+            const strategies = {};
+            tradingData.trades.forEach(trade => {
+                if (!strategies[trade.strategy]) {
+                    strategies[trade.strategy] = { total: 0, wins: 0 };
+                }
+                strategies[trade.strategy].total++;
+                if (trade.result === 'win') {
+                    strategies[trade.strategy].wins++;
+                }
+            });
+
+            const labels = Object.keys(strategies);
+            
+            if (labels.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            const winRates = labels.map(strategy => 
+                (strategies[strategy].wins / strategies[strategy].total * 100).toFixed(1)
+            );
+
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+                '#fa709a', '#fee140', '#a8edea', '#fed6e3'
+            ];
+
+            strategyChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: winRates,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 4,
+                        borderColor: '#ffffff',
+                        hoverBorderWidth: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed}% win rate`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de distribución
+        function updateDistributionChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+
+            const strategies = {};
+            tradingData.trades.forEach(trade => {
+                if (!strategies[trade.strategy]) {
+                    strategies[trade.strategy] = { wins: 0, losses: 0 };
+                }
+                if (trade.result === 'win') {
+                    strategies[trade.strategy].wins++;
+                } else {
+                    strategies[trade.strategy].losses++;
+                }
+            });
+
+            const labels = Object.keys(strategies);
+            
+            if (labels.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            const wins = labels.map(strategy => strategies[strategy].wins);
+            const losses = labels.map(strategy => strategies[strategy].losses);
+
+            distributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ganadas',
+                            data: wins,
+                            backgroundColor: '#10b981',
+                            borderRadius: 8,
+                            borderSkipped: false
+                        },
+                        {
+                            label: 'Perdidas',
+                            data: losses,
+                            backgroundColor: '#ef4444',
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de rendimiento por día de la semana
+        function updateWeekdayChart() {
+            const ctx = document.getElementById('weekdayChart').getContext('2d');
+            
+            if (weekdayChart) {
+                weekdayChart.destroy();
+            }
+
+            const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const weekdayStats = {
+                'Domingo': { profit: 0, trades: 0 },
+                'Lunes': { profit: 0, trades: 0 },
+                'Martes': { profit: 0, trades: 0 },
+                'Miércoles': { profit: 0, trades: 0 },
+                'Jueves': { profit: 0, trades: 0 },
+                'Viernes': { profit: 0, trades: 0 },
+                'Sábado': { profit: 0, trades: 0 }
+            };
+
+            tradingData.trades.forEach(trade => {
+                const date = new Date(trade.date);
+                const weekday = weekdays[date.getDay()];
+                weekdayStats[weekday].profit += trade.profit;
+                weekdayStats[weekday].trades++;
+            });
+
+            const labels = weekdays;
+            const profits = weekdays.map(day => weekdayStats[day].profit);
+            const tradeCounts = weekdays.map(day => weekdayStats[day].trades);
+            
+            if (tradingData.trades.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            weekdayChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Profit por día',
+                        data: profits,
+                        backgroundColor: profits.map(p => p >= 0 ? '#10b981' : '#ef4444'),
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    return `Operaciones: ${tradeCounts[index]}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                },
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Historial
+        function updateHistory() {
+            const historyEl = document.getElementById('tradesHistory');
+            historyEl.innerHTML = '';
+
+            if (tradingData.trades.length === 0) {
+                historyEl.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 60px; color: #9ca3af;">
+                            <i class="fas fa-info-circle" style="font-size: 2em; margin-bottom: 15px; display: block;"></i>
+                            No hay operaciones registradas aún.<br>
+                            <small>Registra tu primera operación en la pestaña "Trade".</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const sortedTrades = [...tradingData.trades].reverse();
+
+            sortedTrades.forEach(trade => {
+                const row = document.createElement('tr');
+                const date = new Date(trade.date);
+                const resultClass = trade.result === 'win' ? 'profit' : 'loss';
+                const resultIcon = trade.result === 'win' ? 'fa-check-circle' : 'fa-times-circle';
+                const directionIcon = trade.direction === 'CALL' ? '📈' : '📉';
+                const profitText = trade.profit >= 0 ? `+$${trade.profit.toFixed(2)}` : `$${trade.profit.toFixed(2)}`;
+                
+                // Crear elementos de etiquetas
+                let tagsHtml = '';
+                if (trade.tags && trade.tags.length > 0) {
+                    tagsHtml = trade.tags.map(tag => 
+                        `<span class="tag" style="font-size: 0.7em; margin: 2px;">${tag}</span>`
+                    ).join('');
+                }
+                
+                row.innerHTML = `
+                    <td>
+                        <strong>${date.toLocaleDateString()}</strong><br>
+                        <small style="color: #64748b;">${date.toLocaleTimeString()}</small>
+                    </td>
+                    <td><strong>${trade.pair}</strong></td>
+                    <td>
+                        <i class="fas fa-brain"></i> ${trade.strategy}
+                    </td>
+                    <td>
+                        <i class="fas fa-clock"></i> ${trade.timeframe}
+                    </td>
+                    <td>${directionIcon} ${trade.direction}</td>
+                    <td><strong>$${trade.amount.toFixed(2)}</strong></td>
+                    <td>
+                        <span class="${resultClass}">
+                            <i class="fas ${resultIcon}"></i> 
+                            ${trade.result === 'win' ? 'GANADA' : 'PERDIDA'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="${resultClass}">
+                            <strong>${profitText}</strong>
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                            ${tagsHtml}
+                        </div>
+                    </td>
+                `;
+                historyEl.appendChild(row);
+            });
+        }
+
+        // Sistema de notificaciones
+        function showNotification(message, type = 'info') {
+            if (!tradingData.settings.notifications) return;
+            
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            notification.innerHTML = `
+                <i class="fas fa-${icons[type]}"></i>
+                <span>${message}</span>
+                <span class="notification-close" onclick="this.parentElement.remove()">&times;</span>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-eliminar después de 5 segundos
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideOutRight 0.3s forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+
+        // Añadir animación de salida para notificaciones
+        const notificationStyle = document.createElement('style');
+        notificationStyle.textContent = `
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(notificationStyle);
+
+        // Gestión de metas
+        function updateGoalsDisplay() {
+            const goalsList = document.getElementById('goalsList');
+            goalsList.innerHTML = '';
+            
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay()); // Domingo de esta semana
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            // Calcular ganancias para hoy, esta semana y este mes
+            const todayProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= today && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+                
+            const weekProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= weekStart && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+                
+            const monthProfit = tradingData.trades
+                .filter(t => new Date(t.date) >= monthStart && t.result === 'win')
+                .reduce((sum, t) => sum + t.profit, 0);
+            
+            // Crear tarjetas de metas
+            const goalsData = [
+                {
+                    title: 'Meta Diaria',
+                    current: todayProfit,
+                    target: tradingData.goals.daily,
+                    icon: 'calendar-day',
+                    color: '#10b981'
+                },
+                {
+                    title: 'Meta Semanal',
+                    current: weekProfit,
+                    target: tradingData.goals.weekly,
+                    icon: 'calendar-week',
+                    color: '#3b82f6'
+                },
+                {
+                    title: 'Meta Mensual',
+                    current: monthProfit,
+                    target: tradingData.goals.monthly,
+                    icon: 'calendar-alt',
+                    color: '#8b5cf6'
+                }
+            ];
+            
+            goalsData.forEach(goal => {
+                const progress = goal.target > 0 ? Math.min(100, (goal.current / goal.target) * 100) : 0;
+                const card = document.createElement('div');
+                card.className = 'goal-card';
+                
+                card.innerHTML = `
+                    <div class="goal-header">
+                        <div class="goal-title">
+                            <i class="fas fa-${goal.icon}"></i> ${goal.title}
+                        </div>
+                        <div class="goal-amount">$${goal.current.toFixed(2)} / $${goal.target.toFixed(2)}</div>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="goal-progress-bar" style="width: ${progress}%; background: ${goal.color};"></div>
+                    </div>
+                    <div class="goal-details">
+                        <span>${progress.toFixed(1)}% completado</span>
+                        <span>$${(goal.target - goal.current).toFixed(2)} restantes</span>
+                    </div>
+                `;
+                
+                goalsList.appendChild(card);
+            });
+            
+            // Actualizar gráfico de metas
+            updateGoalsChart();
+        }
+        
+        function updateGoalsTab() {
+            updateGoalsDisplay();
+        }
+        
+        function updateGoalsChart() {
+            const ctx = document.getElementById('goalsChart').getContext('2d');
+            
+            if (goalsChart) {
+                goalsChart.destroy();
+            }
+            
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            // Calcular profit por día del mes
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const dailyProfits = Array(daysInMonth).fill(0);
+            
+            tradingData.trades
+                .filter(t => new Date(t.date) >= monthStart && t.result === 'win')
+                .forEach(t => {
+                    const day = new Date(t.date).getDate() - 1;
+                    dailyProfits[day] += t.profit;
+                });
+            
+            // Calcular profit acumulado
+            const cumulativeProfits = [];
+            let cumulative = 0;
+            dailyProfits.forEach(profit => {
+                cumulative += profit;
+                cumulativeProfits.push(cumulative);
+            });
+            
+            const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+            
+            if (tradingData.trades.length === 0) {
+                ctx.font = '16px Inter';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos para mostrar', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            goalsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Profit Acumulado',
+                            data: cumulativeProfits,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Meta Mensual',
+                            data: Array(daysInMonth).fill(tradingData.goals.monthly),
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                },
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 600
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Exportar datos
+        function exportData() {
+            const dataStr = JSON.stringify(tradingData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `trading-journal-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showNotification('Datos exportados exitosamente', 'success');
+        }
+
+        // Importar datos
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm('¿Importar datos? Esto reemplazará todos los datos actuales.')) {
+                        tradingData = { ...tradingData, ...importedData };
+                        await saveData();
+                        updateDisplay();
+                        updateCurrencySelect();
+                        updateCurrencyList();
+                        updateGoalsDisplay();
+                        showNotification('Datos importados exitosamente.', 'success');
+                    }
+                } catch (error) {
+                    showNotification('Error al importar datos. Verifica el formato del archivo.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Cerrar modales al hacer clic fuera
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Eventos de teclado para accesibilidad
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
+        // Backup automático cada 5 minutos
+        setInterval(async function() {
+            if (tradingData.trades.length > 0) {
+                tradingData.lastBackup = new Date().toISOString();
+                await saveData();
+            }
+        }, 5 * 60 * 1000);
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await loadData();
+                console.log('Trading Journal Pro+ cargado exitosamente');
+                
+                // Configurar event listeners
+                document.getElementById('themeToggle').addEventListener('click', toggleDarkMode);
+                
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                showNotification('Error al cargar datos. Algunos datos pueden no estar disponibles.', 'error');
+            }
+        });
+
+        console.log('🚀 Trading Journal Pro+ v3.0 - Con más características y mejoras!');
+    </script>
+</body>
+</html>
